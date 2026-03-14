@@ -431,7 +431,88 @@
 </div>
 
 <script>
-  // Generate subtle floating particles
+  // ── Apple-style purchase chime via Web Audio API ──
+  function playAppleChime() {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return;
+    const ctx = new AudioCtx();
+
+    // The App Store purchase sound is a bright two-note bell chord:
+    // a high C and E played together with a soft bell timbre,
+    // then a quick higher chime overtone on top.
+    const notes = [
+      { freq: 1318.5, delay: 0,     dur: 1.6,  gain: 0.18 },  // E6 — main bell
+      { freq: 1567.0, delay: 0,     dur: 1.4,  gain: 0.13 },  // G6 — harmony
+      { freq: 2093.0, delay: 0.03,  dur: 1.0,  gain: 0.09 },  // C7 — shimmer
+      { freq: 2637.0, delay: 0.06,  dur: 0.7,  gain: 0.06 },  // E7 — sparkle
+      { freq: 1046.5, delay: 0,     dur: 1.8,  gain: 0.10 },  // C6 — low warmth
+    ];
+
+    notes.forEach(({ freq, delay, dur, gain }) => {
+      const osc  = ctx.createOscillator();
+      const gain1 = ctx.createGain();
+      const gain2 = ctx.createGain();
+
+      // Bell timbre: mix sine + a touch of triangle
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, ctx.currentTime);
+
+      // Bell envelope: sharp attack, long exponential decay
+      const t = ctx.currentTime + delay;
+      gain1.gain.setValueAtTime(0, t);
+      gain1.gain.linearRampToValueAtTime(gain, t + 0.008);
+      gain1.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+
+      // Slight detuned copy for bell richness
+      const osc2  = ctx.createOscillator();
+      osc2.type = 'triangle';
+      osc2.frequency.setValueAtTime(freq * 1.004, ctx.currentTime);
+      const gain3 = ctx.createGain();
+      gain3.gain.setValueAtTime(0, t);
+      gain3.gain.linearRampToValueAtTime(gain * 0.28, t + 0.008);
+      gain3.gain.exponentialRampToValueAtTime(0.0001, t + dur * 0.6);
+
+      // Reverb-like tail via a second delayed node
+      const osc3  = ctx.createOscillator();
+      osc3.type = 'sine';
+      osc3.frequency.setValueAtTime(freq * 0.998, ctx.currentTime);
+      const gain4 = ctx.createGain();
+      gain4.gain.setValueAtTime(0, t + 0.012);
+      gain4.gain.linearRampToValueAtTime(gain * 0.18, t + 0.025);
+      gain4.gain.exponentialRampToValueAtTime(0.0001, t + dur * 1.1);
+
+      osc.connect(gain1);   gain1.connect(ctx.destination);
+      osc2.connect(gain3);  gain3.connect(ctx.destination);
+      osc3.connect(gain4);  gain4.connect(ctx.destination);
+
+      osc.start(t);  osc.stop(t + dur + 0.05);
+      osc2.start(t); osc2.stop(t + dur);
+      osc3.start(t + 0.012); osc3.stop(t + dur * 1.1);
+    });
+  }
+
+  // Play chime in sync with checkmark draw animation (at 1.6s)
+  // Must be triggered on first user interaction OR after a short timeout.
+  // On most mobile browsers autoplay is blocked — we try both strategies.
+  let chimePlayed = false;
+  function triggerChime() {
+    if (chimePlayed) return;
+    chimePlayed = true;
+    setTimeout(playAppleChime, 1600); // synced to checkmark draw at 1.6s
+  }
+
+  // Strategy 1: auto-play on load (works on desktop & most cases)
+  window.addEventListener('load', () => setTimeout(triggerChime, 100));
+
+  // Strategy 2: first touch/click fallback for strict mobile autoplay policies
+  const unlockEvents = ['touchstart', 'pointerdown', 'click'];
+  function unlockAndPlay() {
+    triggerChime();
+    unlockEvents.forEach(e => document.removeEventListener(e, unlockAndPlay));
+  }
+  unlockEvents.forEach(e => document.addEventListener(e, unlockAndPlay, { once: true }));
+
+  // ── Generate subtle floating particles ──
   const container = document.getElementById('particles');
   const count = 22;
 
