@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Invitation Confirmed</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;500;600&family=Figtree:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after {
+    margin: 0; padding: 0; box-sizing: border-box;
+  }
+
+  :root {
+    --glass-bg: rgba(255,255,255,0.12);
+    --glass-border: rgba(255,255,255,0.28);
+    --glass-shadow: rgba(0,0,0,0.18);
+    --accent: #34C759;
+    --accent-glow: rgba(52,199,89,0.45);
+    --text-primary: rgba(255,255,255,0.97);
+    --text-secondary: rgba(255,255,255,0.58);
+    --text-tertiary: rgba(255,255,255,0.38);
+  }
+
+  html, body {
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+  }
+
+  body {
+    font-family: 'Figtree', -apple-system, BlinkMacSystemFont, sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background: #000;
+    position: relative;
+  }
+
+  /* ── Animated background ── */
+  .bg {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+  }
+
+  .bg-gradient {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 20% 10%, #1a3a5c 0%, transparent 60%),
+      radial-gradient(ellipse 60% 50% at 80% 80%, #0d2a1a 0%, transparent 55%),
+      radial-gradient(ellipse 70% 70% at 50% 50%, #0a0a1a 0%, #000 100%);
+  }
+
+  .orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.55;
+    animation: drift linear infinite;
+  }
+
+  .orb-1 {
+    width: 520px; height: 520px;
+    background: radial-gradient(circle, #0a84ff 0%, #004bbd 50%, transparent 75%);
+    top: -180px; left: -120px;
+    animation-duration: 22s;
+    animation-delay: 0s;
+  }
+  .orb-2 {
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, #34C759 0%, #0a6636 50%, transparent 75%);
+    bottom: -100px; right: -80px;
+    animation-duration: 18s;
+    animation-delay: -7s;
+  }
+  .orb-3 {
+    width: 300px; height: 300px;
+    background: radial-gradient(circle, #5e5ce6 0%, #2c2b8a 50%, transparent 75%);
+    top: 40%; left: 60%;
+    animation-duration: 25s;
+    animation-delay: -13s;
+  }
+  .orb-4 {
+    width: 250px; height: 250px;
+    background: radial-gradient(circle, #ff375f 0%, #8b001f 50%, transparent 75%);
+    top: 60%; left: 10%;
+    animation-duration: 20s;
+    animation-delay: -4s;
+    opacity: 0.3;
+  }
+
+  @keyframes drift {
+    0%   { transform: translate(0, 0) scale(1); }
+    25%  { transform: translate(40px, -30px) scale(1.05); }
+    50%  { transform: translate(-20px, 50px) scale(0.97); }
+    75%  { transform: translate(-50px, -20px) scale(1.03); }
+    100% { transform: translate(0, 0) scale(1); }
+  }
+
+  /* subtle noise grain overlay */
+  .noise {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    opacity: 0.04;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    pointer-events: none;
+  }
+
+  /* ── Card wrapper ── */
+  .scene {
+    position: relative;
+    z-index: 10;
+    perspective: 1200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+
+  .card {
+    position: relative;
+    width: min(420px, 92vw);
+    padding: 52px 40px 44px;
+    border-radius: 32px;
+    text-align: center;
+
+    /* Liquid Glass */
+    background:
+      linear-gradient(135deg,
+        rgba(255,255,255,0.18) 0%,
+        rgba(255,255,255,0.06) 40%,
+        rgba(255,255,255,0.10) 100%);
+    backdrop-filter: blur(48px) saturate(180%) brightness(1.12);
+    -webkit-backdrop-filter: blur(48px) saturate(180%) brightness(1.12);
+    border: 1px solid rgba(255,255,255,0.22);
+    box-shadow:
+      0 0 0 1px rgba(255,255,255,0.08) inset,
+      0 32px 80px rgba(0,0,0,0.45),
+      0 8px 24px rgba(0,0,0,0.25),
+      0 0 120px rgba(52,199,89,0.08);
+
+    /* hidden state */
+    opacity: 0;
+    transform: translateY(36px) scale(0.96);
+    animation: cardReveal 0.9s cubic-bezier(0.34,1.56,0.64,1) 0.3s forwards;
+  }
+
+  @keyframes cardReveal {
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  /* top specular shimmer */
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 12%; right: 12%;
+    height: 1px;
+    background: linear-gradient(90deg,
+      transparent,
+      rgba(255,255,255,0.55) 30%,
+      rgba(255,255,255,0.75) 50%,
+      rgba(255,255,255,0.55) 70%,
+      transparent);
+    border-radius: 100%;
+  }
+
+  /* inner glow rim */
+  .card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 32px;
+    background: linear-gradient(180deg,
+      rgba(255,255,255,0.07) 0%,
+      transparent 50%);
+    pointer-events: none;
+  }
+
+  /* ── Check circle ── */
+  .check-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 32px;
+    width: 88px; height: 88px;
+    position: relative;
+  }
+
+  /* pulsing glow ring */
+  .check-wrap::before {
+    content: '';
+    position: absolute;
+    inset: -14px;
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--accent-glow), transparent 70%);
+    animation: glowPulse 2.6s ease-in-out 1.8s infinite;
+    opacity: 0;
+  }
+
+  @keyframes glowPulse {
+    0%  { opacity: 0;   transform: scale(0.85); }
+    40% { opacity: 1;   transform: scale(1); }
+    100%{ opacity: 0;   transform: scale(1.18); }
+  }
+
+  /* liquid glass circle */
+  .check-circle {
+    width: 88px; height: 88px;
+    border-radius: 50%;
+    background:
+      radial-gradient(circle at 35% 30%,
+        rgba(255,255,255,0.28) 0%,
+        rgba(52,199,89,0.55) 35%,
+        rgba(30,140,60,0.75) 100%);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.30);
+    box-shadow:
+      0 0 0 1px rgba(255,255,255,0.12) inset,
+      0 12px 40px rgba(52,199,89,0.35),
+      0 4px 12px rgba(0,0,0,0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+
+    opacity: 0;
+    transform: scale(0.4);
+    animation: circlePop 0.65s cubic-bezier(0.34,1.6,0.64,1) 1.0s forwards;
+  }
+
+  /* specular on circle */
+  .check-circle::before {
+    content: '';
+    position: absolute;
+    top: 8px; left: 14px;
+    width: 38px; height: 18px;
+    background: rgba(255,255,255,0.30);
+    border-radius: 50%;
+    filter: blur(6px);
+    transform: rotate(-20deg);
+  }
+
+  @keyframes circlePop {
+    to { opacity: 1; transform: scale(1); }
+  }
+
+  /* SVG checkmark */
+  .check-svg {
+    width: 38px; height: 38px;
+    position: relative; z-index: 1;
+  }
+
+  .check-path {
+    fill: none;
+    stroke: #fff;
+    stroke-width: 3.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-dasharray: 50;
+    stroke-dashoffset: 50;
+    animation: drawCheck 0.55s cubic-bezier(0.22,1,0.36,1) 1.6s forwards;
+    filter: drop-shadow(0 1px 3px rgba(0,0,0,0.3));
+  }
+
+  @keyframes drawCheck {
+    to { stroke-dashoffset: 0; }
+  }
+
+  /* ── Typography ── */
+  .eyebrow {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 10px;
+    opacity: 0;
+    animation: fadeUp 0.6s ease 1.9s forwards;
+  }
+
+  .headline {
+    font-size: clamp(26px, 6vw, 32px);
+    font-weight: 600;
+    color: var(--text-primary);
+    letter-spacing: -0.025em;
+    line-height: 1.15;
+    margin-bottom: 14px;
+    opacity: 0;
+    animation: fadeUp 0.6s ease 2.05s forwards;
+  }
+
+  .body-text {
+    font-size: 15px;
+    font-weight: 400;
+    color: var(--text-secondary);
+    line-height: 1.65;
+    max-width: 300px;
+    margin: 0 auto 36px;
+    opacity: 0;
+    animation: fadeUp 0.6s ease 2.2s forwards;
+  }
+
+  .body-text strong {
+    color: rgba(255,255,255,0.82);
+    font-weight: 500;
+  }
+
+  /* ── Divider ── */
+  .divider {
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(90deg,
+      transparent,
+      rgba(255,255,255,0.14) 30%,
+      rgba(255,255,255,0.14) 70%,
+      transparent);
+    margin-bottom: 28px;
+    opacity: 0;
+    animation: fadeUp 0.5s ease 2.35s forwards;
+  }
+
+  /* ── Footer info ── */
+  .meta {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    opacity: 0;
+    animation: fadeUp 0.6s ease 2.45s forwards;
+  }
+
+  .meta-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 8px var(--accent-glow);
+    animation: dotBlink 2.8s ease-in-out 3s infinite;
+  }
+
+  @keyframes dotBlink {
+    0%,100% { opacity: 1; }
+    50%      { opacity: 0.35; }
+  }
+
+  .meta-text {
+    font-size: 12px;
+    color: var(--text-tertiary);
+    letter-spacing: 0.02em;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── Floating particles ── */
+  .particles {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  .particle {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.6);
+    animation: floatUp linear infinite;
+  }
+
+  @keyframes floatUp {
+    0%   { transform: translateY(0) scale(1); opacity: 0; }
+    10%  { opacity: 0.7; }
+    90%  { opacity: 0.2; }
+    100% { transform: translateY(-100vh) scale(0.4); opacity: 0; }
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 430px) {
+    .card { padding: 44px 28px 36px; border-radius: 28px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="bg">
+  <div class="bg-gradient"></div>
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+  <div class="orb orb-4"></div>
+</div>
+
+<div class="noise"></div>
+
+<div class="particles" id="particles"></div>
+
+<div class="scene">
+  <div class="card">
+
+    <div class="check-wrap">
+      <div class="check-circle">
+        <svg class="check-svg" viewBox="0 0 38 38">
+          <path class="check-path" d="M9 19.5 L16.5 27 L29.5 12"/>
+        </svg>
+      </div>
+    </div>
+
+    <p class="eyebrow">Confirmed</p>
+    <h1 class="headline">This invitation<br>is valid.</h1>
+    <p class="body-text">
+      Thank you for accepting.<br>
+      <strong>We're looking forward to seeing you</strong> — your spot has been reserved.
+    </p>
+
+    <div class="divider"></div>
+
+    <div class="meta">
+      <div class="meta-dot"></div>
+      <span class="meta-text">Securely verified · No action required</span>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  // Generate subtle floating particles
+  const container = document.getElementById('particles');
+  const count = 22;
+
+  for (let i = 0; i < count; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+
+    const size  = Math.random() * 3 + 1;
+    const left  = Math.random() * 100;
+    const delay = Math.random() * 18;
+    const dur   = Math.random() * 14 + 12;
+    const startY = Math.random() * 100;
+
+    p.style.cssText = `
+      width:${size}px; height:${size}px;
+      left:${left}%; bottom:${startY}%;
+      animation-duration:${dur}s;
+      animation-delay:-${delay}s;
+      opacity:0;
+    `;
+    container.appendChild(p);
+  }
+
+  // Subtle card tilt on pointer move (desktop)
+  const card = document.querySelector('.card');
+  let ticking = false;
+
+  document.addEventListener('pointermove', e => {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(() => {
+      const cx = window.innerWidth  / 2;
+      const cy = window.innerHeight / 2;
+      const dx = (e.clientX - cx) / cx;
+      const dy = (e.clientY - cy) / cy;
+      card.style.transform = `rotateY(${dx * 4}deg) rotateX(${-dy * 4}deg)`;
+      ticking = false;
+    });
+  });
+
+  document.addEventListener('pointerleave', () => {
+    card.style.transform = '';
+    card.style.transition = 'transform 0.8s ease';
+  });
+</script>
+</body>
+</html>
